@@ -1,0 +1,90 @@
+version: "3.8"
+
+services:
+  todo.redis-dev:
+    image: redis:7.2.3
+    restart: always
+    networks:
+      - todolist-networks
+
+  todo.db-dev:
+    image: postgres:15-alpine
+    restart: always
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_USER: todo
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tododb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - todolist-networks
+
+  todo.app-dev:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173" # Map port 5173 on the host to port 5173 in the container
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=todo.redis-dev
+      - REDIS_PORT=6379
+    command: bash -c "pnpm dev --port=5173 --host=0.0.0.0"
+    depends_on:
+      - todo.redis-dev
+      - todo.db-dev
+    networks:
+      - todolist-networks
+
+  todo.redis:
+    image: redis:7.2.3
+    restart: always
+    networks:
+      - todolist-networks
+
+  todo.db:
+    image: postgres:15-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: todo
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tododb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - todolist-networks
+
+  todo.app:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "80:5173" # Map port 5173 on the host to port 5173 in the container
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=todo.redis
+      - REDIS_PORT=6379
+    command: bash -c "pnpm run start"
+    depends_on:
+      - todo.redis
+      - todo.db
+    networks:
+      - todolist-networks
+
+networks:
+  todolist-networks:
+    driver: bridge
+
+volumes:
+  postgres_data:
