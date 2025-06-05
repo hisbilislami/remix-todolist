@@ -8,18 +8,24 @@ datasource db {
 }
 
 model m_users {
-  id          Int         @id @default(autoincrement())
-  email       String      @unique
-  name        String?
-  password    String
-  verified    Boolean     @default(false)
-  active      Boolean     @default(true)
-  created_at  DateTime    @default(now())
-  created_by  Int?
-  updated_at  DateTime
-  updated_by  Int?
-  creator     m_users?       @relation("CreatedAt", fields: [created_by], references: [id])
-  created     m_users[]      @relation("CreatedAt")
-  updater     m_users?       @relation("UpdatedAt", fields: [updated_by], references: [id])
-  updated     m_users[]      @relation("UpdatedAt")
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  name       String?
+  password   String
+  verified   Boolean   @default(false)
+  active     Boolean   @default(true)
+  created_at DateTime  @default(now())
+  created_by Int?
+  updated_at DateTime
+  updated_by Int?
+  creator    m_users?  @relation("CreatedAt", fields: [created_by], references: [id])
+  created    m_users[] @relation("CreatedAt")
+  updater    m_users?  @relation("UpdatedAt", fields: [updated_by], references: [id])
+  updated    m_users[] @relation("UpdatedAt")
+}
+
+model t_todo {
+  id     Int     @id @default(autoincrement())
+  name   String
+  status Boolean @default(false)
 }
